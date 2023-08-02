@@ -1,0 +1,57 @@
+package com.my.api.repository.entity;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+
+class OrderTest {
+
+    DeliveryInfo deliveryInfo =
+            new DeliveryInfo("brian", "010-1111-2222", "seoul, korea");
+
+    @DisplayName("주문시 배송지와 상품정보는 필수")
+    @Test
+    void 주문시_배송지와_상품정보는_필수() {
+        List<OrderDetail> orderDetails = new ArrayList<>();
+
+        // 주문 생성시 상품정보 목록이 비어있으면 오류
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> new Order(deliveryInfo, orderDetails));
+
+        // 위와 동일한 결과 예제
+//        assertThatThrownBy(() -> new Order(deliveryInfo, orderDetails))
+//                .isInstanceOf(IllegalArgumentException.class);
+
+        // 주문 생성 후 배송상태는 준비중
+        orderDetails.add(new OrderDetail(anyLong(), 3));
+        Order order = new Order(deliveryInfo, orderDetails);
+
+        assertThat(order.getState()).isEqualTo(DeliveryState.PREPARING);
+    }
+
+    @DisplayName("출고 이후 배송지 정보 변경 불가")
+    @Test
+    void 출고_이후_배송지_정보_변경_불가() {
+        // given
+        List<OrderDetail> orderDetails = new ArrayList<>();
+        orderDetails.add(new OrderDetail(anyLong(), 1));
+        Order order = new Order(deliveryInfo, orderDetails);
+
+        // when
+        order.completePayment(); // 상품 준비
+        order.completePrepareProduct(); // 출고
+
+        // then
+        DeliveryInfo newDeliveryInfo =
+                new DeliveryInfo("brian", "010-1111-2222", "seoul, korea");
+
+        // 배송지 변경 시 오류
+        assertThatExceptionOfType(IllegalStateException.class)
+                .isThrownBy(() -> order.changeDeliveryInfo(newDeliveryInfo));
+    }
+}

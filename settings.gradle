@@ -1,2 +1,2 @@
-rootProject.name = 'spring-template'
+rootProject.name = 'ddd-start'
 include 'my-api'

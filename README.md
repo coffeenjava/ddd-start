@@ -1,14 +1,4 @@
-# spring-template
-실무에 사용할 스프링부트 api 템플릿
+# DDD-Start Study
+최범균님의 ddd-start 를 직접 구현해보기 위한 스터디
 
-### 적용된 기능
-* gradle
-* docker
-* Controler 의 요청/응답 로깅
-* Controler 로의 요청 검증기
-* 응답 형식 공통화
-* 에러 응답 형식 공통화
-* MessageSource 설정 (constraints)
-* JPA 데이터소스 설정
-* 각족 Spring 컨버터 설정
-* JPA Enum 컨버터 설정
+요구 사항 구현 등을 미리 만들어 두고 예제코드와 비교해본다.
