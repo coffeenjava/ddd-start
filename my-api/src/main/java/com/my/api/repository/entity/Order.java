@@ -7,11 +7,12 @@ import java.util.List;
 
 @Getter
 public class Order {
-    private Long orderId;
+    private Long orderId = 3L;
 
     private DeliveryInfo deliveryInfo;
     private List<OrderDetail> orderDetails;
-    private DeliveryState state = DeliveryState.PREPARING;
+    private OrderState state = OrderState.PREPARING;
+    private int totalAmount;
 
     public Order(DeliveryInfo deliveryInfo, List<OrderDetail> orderDetails) {
         Assert.notNull(deliveryInfo, "delivery info must not null");
@@ -20,41 +21,43 @@ public class Order {
         this.deliveryInfo = deliveryInfo;
         this.orderDetails = orderDetails;
 
-        orderDetails.forEach(od -> od.setOrderId(orderId));
-    }
-
-    public int getTotalAmount() {
-        return orderDetails.stream()
-                .mapToInt(OrderDetail::getTotalAmount)
-                .sum();
-    }
-
-    public boolean isDeliveryInfoChangeable() {
-        switch (state) {
-            case PAYMENT_WAITING:
-            case PREPARING:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    public void changeDeliveryInfo(DeliveryInfo deliveryInfo) {
-        Assert.state(isDeliveryInfoChangeable(), "already shipped");
-        this.deliveryInfo = deliveryInfo;
+        orderDetails.forEach(od -> {
+            od.setOrderId(orderId);
+            this.totalAmount += od.getTotalAmount();
+        });
     }
 
     public void completePayment() {
-        if (state == DeliveryState.PAYMENT_WAITING) {
+        if (state == OrderState.PAYMENT_WAITING) {
             throw new IllegalStateException("still before payment");
         }
 
-        state = DeliveryState.PREPARING;
+        state = OrderState.PREPARING;
     }
 
     public void completePrepareProduct() {
-        Assert.state(state == DeliveryState.PREPARING, "delivery state must be preparing");
+        Assert.state(state == OrderState.PREPARING, "delivery state must be preparing");
 
-        state = DeliveryState.SHIPPED;
+        state = OrderState.SHIPPED;
+    }
+
+    public void changeDeliveryInfo(DeliveryInfo deliveryInfo) {
+        verifyNotYetShipped();
+        this.deliveryInfo = deliveryInfo;
+    }
+
+    public void cancel() {
+        verifyNotYetShipped();
+        state = OrderState.CANCELED;
+    }
+
+    private void verifyNotYetShipped() {
+        switch (state) {
+            case PAYMENT_WAITING:
+            case PREPARING:
+                return;
+        }
+
+        throw new IllegalStateException("already shipped");
     }
 }

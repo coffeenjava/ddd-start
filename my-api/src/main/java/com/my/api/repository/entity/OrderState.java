@@ -5,10 +5,11 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum DeliveryState {
+public enum OrderState {
     PAYMENT_WAITING,
     PREPARING,
     SHIPPED,
     DELIVERING,
-    DELIVERY_COMPLETE
+    DELIVERY_COMPLETE,
+    CANCELED
 }

@@ -6,13 +6,15 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class OrderTest {
 
     DeliveryInfo deliveryInfo =
             new DeliveryInfo("brian", "010-1111-2222", "seoul, korea");
+
+    Product product = new Product(1000);
 
     @DisplayName("주문시 배송지와 상품정보는 필수")
     @Test
@@ -27,19 +29,26 @@ class OrderTest {
 //        assertThatThrownBy(() -> new Order(deliveryInfo, orderDetails))
 //                .isInstanceOf(IllegalArgumentException.class);
 
-        // 주문 생성 후 배송상태는 준비중
-        orderDetails.add(new OrderDetail(anyLong(), 3));
+        // 주문 생성
+        int orderCount = 3;
+        orderDetails.add(new OrderDetail(product, orderCount));
         Order order = new Order(deliveryInfo, orderDetails);
 
-        assertThat(order.getState()).isEqualTo(DeliveryState.PREPARING);
+        // 생성 후 배송상태는 준비중
+        assertThat(order.getState())
+                .isEqualTo(OrderState.PREPARING);
+
+        // 주문 총 금액은 모든 상품가격과 개수를 곱한 값
+        assertThat(order.getTotalAmount())
+                .isEqualTo(product.getAmount() * orderCount);
     }
 
-    @DisplayName("출고 이후 배송지 정보 변경 불가")
+    @DisplayName("출고 이후 배송지 정보 변경과 주문 취소 불가")
     @Test
-    void 출고_이후_배송지_정보_변경_불가() {
+    void 출고_이후_배송지_정보_변경과_주문_취소_불가() {
         // given
         List<OrderDetail> orderDetails = new ArrayList<>();
-        orderDetails.add(new OrderDetail(anyLong(), 1));
+        orderDetails.add(new OrderDetail(product, 1));
         Order order = new Order(deliveryInfo, orderDetails);
 
         // when
@@ -53,5 +62,9 @@ class OrderTest {
         // 배송지 변경 시 오류
         assertThatExceptionOfType(IllegalStateException.class)
                 .isThrownBy(() -> order.changeDeliveryInfo(newDeliveryInfo));
+
+        // 주문 취소 시 오류
+        assertThatExceptionOfType(IllegalStateException.class)
+                .isThrownBy(() -> order.cancel());
     }
 }
